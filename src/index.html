@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OR Scheduling Optimizer</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Left Panel: Inputs -->
+        <div class="inputs-panel">
+            <h1>OR Rescheduler</h1>
+            <!-- <div class="credit">by Sujan Ganesh Kumar </div> -->
+            <div class="credit">by <a href="https://linkedin.com/in/sujangk" target="_blank">Sujan Ganesh Kumar</a></div>
+            
+            <div class="input-section">
+                <h3>Week & Suite Selection</h3>
+                <div class="input-group">
+                    <label>Week</label>
+                    <select id="week" onchange="loadInitialData()">
+                        <option value="">Select week...</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label>OR Suite</label>
+                    <select id="or_suite" onchange="loadInitialData()">
+                        <option value="">Select suite...</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="input-section">
+                <h3>Emergency Prediction</h3>
+                <div class="input-group">
+                    <label>Expected Emergency Cases per Day</label>
+                    <div class="day-labels">
+                        <span>Mon</span>
+                        <span>Tue</span>
+                        <span>Wed</span>
+                        <span>Thu</span>
+                        <span>Fri</span>
+                    </div>
+                    <div class="poisson-inputs">
+                        <input type="number" id="poisson_mon" value="1" min="0" step="any">
+                        <input type="number" id="poisson_tue" value="1" min="0" step="any">
+                        <input type="number" id="poisson_wed" value="1" min="0" step="any">
+                        <input type="number" id="poisson_thu" value="1" min="0" step="any">
+                        <input type="number" id="poisson_fri" value="1" min="0" step="any">
+                    </div>
+                    <br>
+                    <label><strong>Note: </strong>We assume the OR operates 8 hours (480 min) per day.</label>
+                </div>
+            </div>
+
+            <div class="input-section collapsible">
+                <h3 onclick="toggleSection(this)">Cost Inputs</h3>
+                <div class="section-content">
+                    <div class="input-group">
+                        <label>OR Overtime Cost ($/min)</label>
+                        <input type="number" id="overtime_cost" value="120" min="0" step="any">
+                    </div>
+                    <div class="input-group">
+                        <label>OR Idle Cost ($/min)</label>
+                        <input type="number" id="idle_cost" value="60" min="0" step="any">
+                    </div>
+                    <div class="input-group">
+                        <label>Surgery Reschedule Cost ($)</label>
+                        <input type="number" id="reschedule_cost" value="200" min="0" step="any">
+                    </div>
+                    <div class="input-group">
+                        <label>Surgery Cancellation Cost ($)</label>
+                        <input type="number" id="cancellation_cost" value="2000" min="0" step="any">
+                    </div>
+                </div>
+            </div>
+
+            <div class="input-section collapsible collapsed">
+                <h3 onclick="toggleSection(this)">Modeling Parameters</h3>
+                <div class="section-content">
+                    <div class="input-group">
+                        <label>Optimization Scenario Count</label>
+                        <input type="number" id="scenario_count" value="50" min="1" max="100" step="1">
+                    </div>
+                    <div class="input-group">
+                        <label>Simulation Iteration Count</label>
+                        <input type="number" id="simulation_count" value="50" min="1" max="100" step="1">
+                    </div>
+                </div>
+            </div>
+
+            <button class="btn-optimize" onclick="runOptimization()">Optimize Schedule</button>
+
+            <div class="learn-more">
+                Click <a href="https://youtu.be/dQw4w9WgXcQ?si=BcJvlDY_xsqAcTQL" target="_blank">here</a> to learn more about the optimization and simulation methodology
+            </div>
+        </div>
+
+        <!-- Right Panel: Results -->
+        <div class="results-panel">
+            <div id="results-container">
+                <div class="project-background">
+                    <h2>Project Overview</h2>
+                    <br>
+                    <p>
+                        <strong>Motivation:</strong>
+                    </p>
+                    <p>
+                        Operating rooms (ORs) represent both the largest revenue source and cost center for hospitals. 
+                        While elective surgeries can be scheduled in advance, emergency cases arrive unpredictably, creating significant scheduling challenges for hospital administrators.
+                        Emergency surgeries often wait for hours until elective cases are finished, or life-threatening emergencies displace scheduled elective procedures, resulting in delays, cancellations, and overtime costs.
+                        Therefore, traditional scheduling approaches often fail to adequately balance the competing demands of elective and emergency surgeires, leading to inefficient resource utilization and suboptimal patient outcomes.
+                    </p>
+                    <br>
+                    <p>
+                        <strong>This Model:</strong>
+                    </p>
+                    <p>
+                        This model uses <strong>stochastic optimization</strong> with <strong>Monte Carlo simulation</strong> to generate proactive surgical schedules that account for emergency demand uncertainty.
+                        By making ex-ante preparations for possible emergency arrivals while minimizing costs associated with overtime, idle time, rescheduling, and cancellations, the model helps hospitals improve OR utilization and responsiveness without compromising elective surgery throughput.
+                    </p>
+                    <br>
+                    <p>
+                        <strong>How it works:</strong>
+                    </p>
+                    <ul>
+                        <li>Select a week and OR suite to view the current surgical schedule</li>
+                        <li>Configure emergency case predictions for the week, cost parameters, and modeling parameters (if needed)</li>
+                        <li>Run optimization to generate an improved schedule that balances capacity and costs</li>
+                        <li>View simulation results comparing the performance between the original schedule and the optimized schedule</li>
+                    </ul>
+                    <br>
+                    <p>
+                        <strong>Disclaimer:</strong> Since this application uses an optimization-then-simulation approach, some results may produce
+                        "optimized" schedules that perform worse than the original schedule when tested using simulation. While the optimization model
+                        will produce the best schedule under an expectation of emergency demand, the uncertainty associated with simulation and the modeling
+                        parameters chosen may generate scenarios that work against the optimized schedule.
+                    </p>
+                    <p style="font-size: 11px; color: #777; margin-top: 15px">
+                        <strong>References:</strong>
+                        <a href="https://journals.sagepub.com/doi/10.1111/poms.12993" target="_blank">Jung et al. (2019)</a>,
+                        <a href="https://onlinelibrary.wiley.com/doi/10.1111/deci.12096" target="_blank">Ferrand et al. (2014)</a>,
+                        <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC3672429/" target="_blank">Wright et al. (2012)</a>,
+                        <a href="https://www.sciencedirect.com/science/article/abs/pii/S0305054821002628", target="_blank">Shehadeh & Padman (2022)</a>
+                    </p>
+                    <p style="font-size: 11px; color: #777; margin-top: 15px">
+                        <strong>Dataset:</strong>
+                        <a href="https://www.kaggle.com/datasets/thedevastator/optimizing-operating-room-utilization" target="_blank">"Operating Room Utilization" by Jennifer Falk</a>
+                    </p>
+                </div>
+
+                <div class="empty-state">
+                    <div class="empty-state-icon">📊</div>
+                    <p>Configure parameters and click "Optimize Schedule" to see results.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = '';
+        let availableData = null;
+
+        // Make sections collapsible
+        function toggleSection(header) {
+            const section = header.parentElement;
+            section.classList.toggle('collapsed');
+        }
+
+        // Load available weeks and suites on page load
+        async function loadAvailableData() {
+            try {
+                const response = await fetch('/api/weeks-suites');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                availableData = await response.json();
+                
+                // Populate week dropdown
+                const weekSelect = document.getElementById('week');
+                availableData.weeks.forEach(week => {
+                    const option = document.createElement('option');
+                    option.value = week;
+                    option.textContent = week;
+                    weekSelect.appendChild(option);
+                });
+
+                // Populate suite dropdown
+                const suiteSelect = document.getElementById('or_suite');
+                availableData.suites.forEach(suite => {
+                    const option = document.createElement('option');
+                    option.value = suite;
+                    option.textContent = suite;
+                    suiteSelect.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Error loading data:', error);
+                alert(`Failed to load week/suite data: ${error.message}\n\nMake sure Flask server is running at http://127.0.0.1:5000`);
+            }
+        }
+
+        // Displaying initial surgery data
+        async function loadInitialData() {
+            // Get week-suite info
+            const week = document.getElementById('week').value;
+            const or_suite = document.getElementById('or_suite').value;
+
+            // Only load if both are selected
+            if (!week || !or_suite) {
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/initial-data', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ week, or_suite })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to load initial data');
+                }
+
+                const data = await response.json();
+                displayInitialData(data);
+            } catch (error) {
+                console.error('Error loading initial data:', error);
+                document.getElementById('results-container').innerHTML = 
+                    `<div class="error">Error loading data: ${error.message}</div>`;
+            }
+        }
+
+        // Display initial schedule data (before optimization)
+        function displayInitialData(data) {
+            const container = document.getElementById('results-container');
+            
+            container.innerHTML = `
+                <div class="results-grid">
+                    <!-- Schedule Card - Initial Schedule -->
+                    <div class="result-card schedule-card">
+                        <h2>Original Schedule | ${data.specialty}</h2>
+                        <div class="table-container">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Surgery</th>
+                                        <th>CPT Code</th>
+                                        <th>Procedure</th>
+                                        <th>Duration (min)</th>
+                                        <th>Scheduled Day</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${data.surgeries.map(s => `
+                                        <tr>
+                                            <td>${s.surgery_id}</td>
+                                            <td>${s.code}</td>
+                                            <td>${s.procedure}</td>
+                                            <td>${Math.round(s.duration)}</td>
+                                            <td>${s.weekday}</td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Day Summary Card - Initial Summary -->
+                    <div class="result-card">
+                        <h2>Original Daily Breakdown</h2>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Day</th>
+                                    <th>Elective Duration (min)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${data.day_summary.map(d => `
+                                    <tr>
+                                        <td>${d.day}</td>
+                                        <td>${Math.round(d.total_duration)}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Placeholder for optimization results -->
+                    <div class="result-card">
+                        <h2>Rescheduling Summary</h2>
+                        <div style="padding: 20px; text-align: center; color: #999;">
+                            Click "Optimize Schedule" to see changes
+                        </div>
+                    </div>
+
+                    <div class="result-card">
+                        <h2>Simulated Average Cost Performance</h2>
+                        <div style="padding: 20px; text-align: center; color: #999;">
+                            Click "Optimize Schedule" to see performance metrics
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Run optimization model based on given parameters
+        async function runOptimization() {
+            const week = document.getElementById('week').value;
+            const or_suite = document.getElementById('or_suite').value;
+
+            if (!week || !or_suite) {
+                alert('Please select both week and OR suite');
+                return;
+            }
+
+            // Functions to safely parse 0 values for ints and floats
+            const safeParseInt = (value, defaultValue = 0) => {
+                const parsed = parseInt(value);
+                return isNaN(parsed) ? defaultValue : parsed;
+            };
+
+            const safeParseFloat = (value, defaultValue = 0) => {
+                const parsed = parseFloat(value);
+                return isNaN(parsed) ? defaultValue : parsed;
+            };
+
+            // Getting entered parameters
+            const params = {
+                week: week,
+                or_suite: or_suite,
+                poisson_rates: [
+                    safeParseInt(document.getElementById('poisson_mon').value, 0),
+                    safeParseInt(document.getElementById('poisson_tue').value, 0),
+                    safeParseInt(document.getElementById('poisson_wed').value, 0),
+                    safeParseInt(document.getElementById('poisson_thu').value, 0),
+                    safeParseInt(document.getElementById('poisson_fri').value, 0)
+                ],
+                overtime_cost: safeParseFloat(document.getElementById('overtime_cost').value, 0),
+                idle_cost: safeParseFloat(document.getElementById('idle_cost').value, 0),
+                reschedule_cost: safeParseFloat(document.getElementById('reschedule_cost').value, 0),
+                cancellation_cost: safeParseFloat(document.getElementById('cancellation_cost').value, 0),
+                scenario_count: safeParseInt(document.getElementById('scenario_count').value, 100),
+                simulation_count: safeParseInt(document.getElementById('simulation_count').value, 100)
+            };
+
+            // Waiting state message
+            document.getElementById('results-container').innerHTML = '<div class="loading">Optimizing schedule... ⚙️ This may take a moment.</div>';
+            
+            try {
+                const response = await fetch('/api/optimize', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(params)
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Optimization failed');
+                }
+
+                displayResults(data);
+            } catch (error) {
+                document.getElementById('results-container').innerHTML = 
+                    `<div class="error">Error: ${error.message}</div>`;
+            }
+        }
+
+        // Display optimization and simulation results
+        function displayResults(data) {
+            const container = document.getElementById('results-container');
+
+            // Calculating cost improvement percentage
+            let cost_improvement_pct = data.totals.cost_improvement_count / data.simulation_count
+            
+            container.innerHTML = `
+                <div class="results-grid">
+                    <!-- Schedule Card -->
+                    <div class="result-card schedule-card">
+                        <h2>Optimized Schedule | ${data.specialty}</h2>
+                        <div class="table-container">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Surgery</th>
+                                        <th>Duration (min)</th>
+                                        <th>Original Day</th>
+                                        <th>Rescheduled Day</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${data.surgery_changes.map(s => `
+                                        <tr>
+                                            <td>${s.surgery_id}</td>
+                                            <td>${Math.round(s.duration)}</td>
+                                            <td>${s.original_day}</td>
+                                            <td>${s.new_day}</td>
+                                            <td>
+                                                ${s.cancelled === 'Yes' ? '<span class="status-badge cancelled">Cancelled</span>' : 
+                                                  s.rescheduled === 'Yes' ? '<span class="status-badge rescheduled">Rescheduled</span>' :
+                                                  '<span class="status-badge unchanged">Unchanged</span>'}
+                                            </td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Data/Metrics Card -->
+                    <div class="result-card">
+                        <h2>Optimized Daily Breakdown</h2>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th rowspan="2">Day</th>
+                                    <th rowspan="2" style="width: 100px;">Expected Emergency Duration (min)</th>
+                                    <th colspan="2">Elective Duration (min)</th>
+                                    <th colspan="2">Total Duration (min)</th>
+                                    <th rowspan="2">Status</th>
+                                </tr>
+
+                                <tr>
+                                    <th>Orig.</th>
+                                    <th>Resched.</th>
+                                    <th>Orig.</th>
+                                    <th>Resched.</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${data.day_summary.map(d => `
+                                    <tr>
+                                        <td>${d.day}</td>
+                                        <td>${Math.round(d.expected_emergency)}</td>
+                                        <td>${Math.round(d.original_duration)}</td>
+                                        <td>${Math.round(d.new_duration)}</td>
+                                        <td>${Math.round(d.original_duration + d.expected_emergency)}</td>
+                                        <td>${Math.round(d.new_duration + d.expected_emergency)}</td>
+                                        <td>
+                                            ${d.original_duration === d.new_duration ? '<span class="status-badge unchanged">Unchanged</span>' : 
+                                                '<span class="status-badge rescheduled">Rescheduled</span>' }
+                                        </td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- New Schedule Changes Card -->
+                    <div class="result-card">
+                        <h2>Rescheduling Summary</h2>
+                        <div class="metric-item">
+                            <span class="metric-label">Surgeries Rescheduled:</span>
+                            <span class="metric-value">${data.surgery_changes.filter(s => s.rescheduled === 'Yes').length}</span>
+                        </div>
+                        <div class="metric-item">
+                            <span class="metric-label">Surgeries Cancelled:</span>
+                            <span class="metric-value">${data.surgery_changes.filter(s => s.cancelled === 'Yes').length}</span>
+                        </div>
+                        <div class="metric-item">
+                            <span class="metric-label">Schedule Change Cost:</span>
+                            <span class="metric-value">$${Math.round(data.totals.rescheduling_cost).toLocaleString()}</span>
+                        </div>
+                    </div>
+
+                    <!-- Simulation Performance Card -->
+                    <div class="result-card">
+                        <h2>Simulated Average Cost Performance (${data.simulation_count} iterations)</h2>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th rowspan="2">Day</th>
+                                    <th colspan="2">Overtime ($)</th>
+                                    <th colspan="2">Idle ($)</th>
+                                    <th colspan="2">Total ($)</th>
+                                    <th rowspan="2">Cost Change</th>
+                                </tr>
+                                <tr>
+                                    <th>Orig.</th>
+                                    <th>Resched.</th>
+                                    <th>Orig.</th>
+                                    <th>Resched.</th>
+                                    <th>Orig.</th>
+                                    <th>Resched.</th>
+                                </tr>
+                            </thead>
+                            
+                            <tbody>
+                                ${data.simulation_results.map(d => {
+                                    const totalOriginal = d.original_overtime + d.original_idle;
+                                    const totalNew = d.rescheduled_overtime + d.rescheduled_idle;
+                                    const difference = totalOriginal - totalNew;
+                                    
+                                    let diffColor = '';
+                                    if (difference > 0) {
+                                        diffColor = 'color: #27ae60; font-weight: 600;';
+                                    } else if (difference < 0) {
+                                        diffColor = 'color: #e74c3c; font-weight: 600;';
+                                    } else {
+                                        diffColor = 'color: #f39c12; font-weight: 600;';
+                                    }
+                                    
+                                    return `
+                                        <tr>
+                                            <td>${d.day}</td>
+                                            <td>${Math.round(d.original_overtime)}</td>
+                                            <td>${Math.round(d.rescheduled_overtime)}</td>
+                                            <td>${Math.round(d.original_idle)}</td>
+                                            <td>${Math.round(d.rescheduled_idle)}</td>
+                                            <td>${Math.round(totalOriginal)}</td>
+                                            <td>${Math.round(totalNew)}</td>
+                                            <td style="${diffColor}">$${Math.round(difference)}</td>
+                                        </tr>
+                                    `;
+                                }).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Overall Metrics Summary -->
+                    <div class="result-card metrics-summary">
+                        <h2>Average Rescheduling Performance</h2>
+                        <div class="metric-item">
+                            <span class="metric-label">Total Original Cost:</span>
+                            <span class="metric-value">$${Math.round(data.totals.total_original_cost).toLocaleString()}</span>
+                        </div>
+                        <div class="metric-item">
+                            <span class="metric-label">Total Rescheduled Cost:</span>
+                            <span class="metric-value">$${Math.round(data.totals.total_rescheduled_cost).toLocaleString()}</span>
+                        </div>
+                        <div class="metric-item">
+                            <span class="metric-label">Cost Improvement:</span>
+                            <span class="metric-value ${data.totals.cost_improvement > 0 ? 'good' : 
+                                data.totals.cost_improvement < 0 ? 'poor' : 'mid'}">
+                                $${Math.round(data.totals.cost_improvement).toLocaleString()}
+                            </span>
+                        </div>
+                        <div class="metric-item">
+                            <span class="metric-label">Simulations with Cost Improvement:</span>
+                            <span class="metric-value ${cost_improvement_pct >= 0.7 ? 'good' : 
+                                cost_improvement_pct >= 0.3 ? 'mid' : 'poor'}">
+                                ${data.totals.cost_improvement_count} / ${data.simulation_count} (
+                                ${Math.round(cost_improvement_pct*100).toLocaleString()}%)
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Load data on page load
+        loadAvailableData();
+    </script>
+</body>
+</html>

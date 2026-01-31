@@ -1,0 +1,24 @@
+# Virtual environment
+.venv/
+
+# Python bytecode
+__pychache__/
+*.py[cod]
+*$py.class
+
+# Data folder specifics
+data/*
+!data/2022_Q1_OR_Utilization.csv
+!data/cleaned_data.csv
+
+# Script folder
+scripts/
+
+# src folder specifics
+src/outputs/
+
+# Other files
+EDA.ipynb
+testing.ipynb
+generate_optimization_input.py
+lp.md
