@@ -20,6 +20,7 @@ fonttools==4.61.1
 gitdb==4.0.12
 GitPython==3.1.46
 gurobipy==12.0.3
+gunicorn
 highspy==1.12.0
 idna==3.11
 ipykernel==7.1.0
