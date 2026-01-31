@@ -263,6 +263,11 @@ def open_browser():
     webbrowser.open('http://127.0.0.1:5000')
 
 if __name__ == '__main__':
-    print("Starting Flask server on http://127.0.0.1:5000")
-    threading.Thread(target=open_browser, daemon=True).start()
-    app.run(debug=True, port=5000, host='127.0.0.1', use_reloader=False)
+    import os
+    port = int(os.environ.get("PORT", 5000))
+
+    if not os.environ.get("RENDER"):
+        print("Running locally...")
+        threading.Thread(target=open_browser, daemon=True).start()
+
+    app.run(host='0.0.0.0', port=port, debug=False)
