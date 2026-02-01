@@ -27,8 +27,27 @@ body {
 
 .inputs-panel h1 {
     font-size: 24px;
-    margin-bottom: 10px;
+    margin-bottom: 5px;
     color: #2c3e50;
+}
+
+/* Credit styling */
+.credit {
+    font-size: 12px;
+    color: #7f8c8d;
+    font-style: italic;
+    margin-bottom: 25px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #ecf0f1;
+}
+
+.credit a {
+    color: #3498db;
+    text-decoration: none;
+}
+
+.credit a:hover {
+    text-decoration: underline;
 }
 
 .input-section {
@@ -44,6 +63,7 @@ body {
     letter-spacing: 0.5px;
 }
 
+/* Collapsible section styles */
 .input-section.collapsible h3 {
     cursor: pointer;
     display: flex;
@@ -142,6 +162,24 @@ body {
     cursor: not-allowed;
 }
 
+/* Learn more link styling */
+.learn-more {
+    text-align: center;
+    margin-top: 15px;
+    font-size: 12px;
+    color: #666;
+}
+
+.learn-more a {
+    color: #3498db;
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+.learn-more a:hover {
+    color: #2980b9;
+}
+
 /* Right Panel - Results */
 .results-panel {
     background: #fafafa;
@@ -174,6 +212,7 @@ body {
     flex-shrink: 0;
 }
 
+/* Make schedule card scrollable with fixed height */
 .result-card.schedule-card {
     max-height: 400px;
 }
@@ -212,7 +251,7 @@ body {
     color: #27ae60;
 }
 
-.metric-value.negative {
+.metric-value.poor {
     color: #e74c3c;
 }
 
@@ -222,10 +261,6 @@ body {
 
 .metric-value.mid {
     color: #f39c12;
-}
-
-.metric-value.poor {
-    color: #e74c3c
 }
 
 table {
@@ -300,6 +335,7 @@ tr:hover {
     margin-bottom: 15px;
 }
 
+/* Project background section */
 .project-background {
     background: white;
     border-radius: 8px;
@@ -311,51 +347,189 @@ tr:hover {
 .project-background h2 {
     font-size: 20px;
     color: #2c3e50;
+    margin-bottom: 15px;
     border-bottom: 2px solid #3498db;
+    padding-bottom: 10px;
 }
 
 .project-background p {
     color: #555;
     line-height: 1.6;
+    margin-bottom: 12px;
 }
 
 .project-background ul {
+    color: #555;
     line-height: 1.8;
     margin-left: 20px;
 }
 
-/* General styling */
-.learn-more {
-    text-align: center;
-    margin-top: 15px;
-    font-size: 12px;
-    color: #666;
+.project-background ul li {
+    margin-bottom: 8px;
 }
 
-.learn-more a {
-    color: #3498db;
-    text-decoration: underline;
+/* Methodology page layout */
+.methodology-container {
+    max-width: 850px;
+    margin: 0 auto;
+    padding: 40px 30px;
+}
+
+/* Back button */
+.methodology-header {
+    margin-bottom: 30px;
+}
+
+.btn-back {
+    background: none;
+    border: 1px solid #ddd;
+    color: #555;
+    padding: 8px 16px;
+    border-radius: 4px;
+    font-size: 14px;
     cursor: pointer;
+    transition: all 0.3s;
 }
 
-.learn-more a:hover {
-    color: #2980b9;
+.btn-back:hover {
+    background: #3498db;
+    color: white;
+    border-color: #3498db;
 }
 
-.credit {
-    font-size: 12px;
+/* Page title */
+.methodology-title {
+    margin-bottom: 40px;
+    padding-bottom: 20px;
+    border-bottom: 2px solid #3498db;
+}
+
+.methodology-title h1 {
+    font-size: 28px;
+    color: #2c3e50;
+    margin-bottom: 8px;
+}
+
+.methodology-subtitle {
     color: #7f8c8d;
     font-style: italic;
-    margin-bottom: 25px;
-    padding-bottom: 15px;
-    border-bottom: 1px solid #ecf0f1;
+    font-size: 14px;
 }
 
-.credit a {
+/* Methodology sections */
+.methodology-content {
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+}
+
+.methodology-section {
+    background: white;
+    border-radius: 8px;
+    padding: 0;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.methodology-section h2 {
+    font-size: 18px;
+    color: #555;
+    margin: 0;
+    padding: 18px 30px;
+    border-bottom: none;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    user-select: none;
+    letter-spacing: 0.5px;
+    font-weight: 600;
+    transition: color 0.3s;
+}
+
+.methodology-section h2:hover {
     color: #3498db;
-    text-decoration: none;
 }
 
-.credit a:hover {
-    text-decoration: underline;
+.methodology-section h2::after {
+    content: '▼';
+    font-size: 10px;
+    transition: transform 0.3s;
+}
+
+.methodology-section.collapsed h2::after {
+    transform: rotate(-90deg);
+}
+
+.methodology-section .section-content {
+    max-height: 4000px;
+    overflow: hidden;
+    transition: max-height 0.3s ease-out;
+    padding: 0 30px 25px 30px;
+}
+
+.methodology-section.collapsed .section-content {
+    max-height: 0;
+    padding-bottom: 0;
+}
+
+.methodology-section p {
+    color: #555;
+    line-height: 1.7;
+    margin-bottom: 12px;
+}
+
+.methodology-section p:last-child {
+    margin-bottom: 0;
+}
+
+.methodology-section ul {
+    color: #555;
+    line-height: 1.8;
+    margin-left: 20px;
+    margin-bottom: 12px;
+}
+
+.methodology-section ul li {
+    margin-bottom: 6px;
+}
+
+.methodology-section .math-block {
+    background: #f8f9fa;
+    border-left: 3px solid #3498db;
+    padding: 12px 18px;
+    margin: 15px 0;
+    border-radius: 0 4px 4px 0;
+    font-family: 'Courier New', monospace;
+    font-size: 14px;
+    color: #2c3e50;
+}
+
+.methodology-section .pseudocode {
+    background: #f8f9fa;
+    border-left: 3px solid #3498db;
+    padding: 16px 20px;
+    margin: 15px 0;
+    border-radius: 0 4px 4px 0;
+    font-family: 'Courier New', monospace;
+    font-size: 14px;
+    color: #2c3e50;
+    /* white-space: pre; */
+}
+
+.pseudocode .keyword {
+    color: #8e44ad;
+    font-weight: bold;
+}
+
+.pseudocode .comment {
+    color: #7f8c8d;
+    font-style: italic;
+}
+
+.pseudocode .indent-1 { padding-left: 24px; }
+.pseudocode .indent-2 { padding-left: 48px; }
+.pseudocode .indent-3 { padding-left: 72px; }
+
+.equation {
+    text-align: center;
 }

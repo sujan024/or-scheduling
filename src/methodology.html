@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Methodology - OR Scheduling Optimizer</title>
+    <link rel="stylesheet" href="styles.css">
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
+    <!-- <link rel="stylesheet" href="methodology.css"> -->
+</head>
+<body>
+    <div class="methodology-container">
+        <!-- Back Button -->
+        <div class="methodology-header">
+            <button class="btn-back" onclick="window.location.href='/'">← Back to OR Rescheduler</button>
+        </div>
+
+        <!-- Page Title -->
+        <div class="methodology-title">
+            <h1>Optimization & Simulation Methodology</h1>
+            <p class="methodology-subtitle">A technical overview of the approach used in this tool</p>
+        </div>
+
+        <!-- Methodology Sections -->
+        <div class="methodology-content">
+
+            <div class="methodology-section">
+                <h2 onclick="toggleSection(this)">1. Problem Formulation</h2>
+                <div class="section-content">
+                    <p>
+                        The goal of this problem is to reschedule the weekly surgery schedule of an operating room (OR) in preparation of an uncertain number of emergency surgeries during the week.
+                        We approach this problem using an <strong>optimization-then-simulation</strong> method:
+                        <ul>
+                            <li>First, we optimize the existing elective surgery schedule, balancing expected emergency surgery demand and costs.</li>
+                            <li>Then, we simulate the optimized and original schedules to test their performance against various emergency surgery demand scenarios.</li>
+                        </ul>
+                    </p>
+                </div>
+            </div>
+
+            <div class="methodology-section collapsed">
+                <h2 onclick="toggleSection(this)">2. Optimization</h2>
+                <div class="section-content">
+                    <p>
+                        We formulate the optimization problem as a <strong>stochastic mixed-integer program</strong> with <strong>sample average approximation</strong>.
+                    </p>
+                    <p>
+                        <strong>Parameters</strong>
+                        <table>
+                            <tr>
+                                <th>Notation</th>
+                                <th>Description</th>
+                            </tr>
+                            <tr>
+                                <td>\(n\)</td>
+                                <td>Number of surgeries to schedule</td>
+                            </tr>
+                            <tr>
+                                <td>\(m\)</td>
+                                <td>Number of days to schedule surgeries for</td>
+                            </tr>
+                            <tr>
+                                <td>\(M\)</td>
+                                <td>Maximum OR time (in min) for each day</td>
+                            </tr>
+                            <tr>
+                                <td>\(S\)</td>
+                                <td>Number of samples to run</td>
+                            </tr>
+                            <tr>
+                                <td>\(c^{OT}\)</td>
+                                <td>Overtime cost ($/min) for the OR</td>
+                            </tr>
+                            <tr>
+                                <td>\(c^{ID}\)</td>
+                                <td>Idle cost ($/min) for the OR</td>
+                            </tr>
+                            <tr>
+                                <td>\(c^{RE}\)</td>
+                                <td>Reschedule cost ($/day) for a surgery</td>
+                            </tr>
+                            <tr>
+                                <td>\(c^{CA}\)</td>
+                                <td>Cancellation cost ($) for a surgery</td>
+                            </tr>
+                        </table>
+                    </p>
+                    <p>
+                        <strong>Data</strong>
+                        <table>
+                            <tr>
+                                <th>Notation</th>
+                                <th>Description</th>
+                                <th>Range</th>
+                            </tr>
+                            <tr>
+                                <td>\(a_{ij}\)</td>
+                                <td>Binary indicator if surgery \(i\) is scheduled on day \(j\)</td>
+                                <td>
+                                    \(i \in {1,...,n}\)<br>
+                                    \(j \in {1,...,m}\)
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>\(d_i\)</td>
+                                <td>Duration (min) of surgery \(i\)</td>
+                                <td>\(i \in {1,...,n}\)</td>
+                            </tr>
+                            <tr>
+                                <td>\(e_j\)</td>
+                                <td>Expected number of emergency surgeries (Poisson rate) on day \(j\)</td>
+                                <td>\(j \in {1,...,m}\)</td>
+                            </tr>
+                            <tr>
+                                <td>\(E_{js}\)</td>
+                                <td>Duration (min) of emergency surgeries on day \(j\) under scenario \(s\)</td>
+                                <td>
+                                    \(j \in {1,...,m}\)<br>
+                                    \(s \in {1,...,S}\)
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>\(p_s\)</td>
+                                <td>Probability of scenario \(s\)</td>
+                                <td>\(s \in {1,...,S}\)</td>
+                            </tr>
+                        </table>
+                    </p>
+                    <p>
+                        <strong>Decision Variables</strong>
+                        <table>
+                            <tr>
+                                <th>Notation</th>
+                                <th>Description</th>
+                                <th>Range</th>
+                            </tr>
+                            <tr>
+                                <td>\(x_{ij}\)</td>
+                                <td>Binary variable indiciating if surgery \(i\) is rescheduled to day \(j\)</td>
+                                <td>
+                                    \(i \in {1,...,n}\)<br>
+                                    \(j \in {1,...,m+1}\)
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>\(y_i\)</td>
+                                <td>Binary variable indiciating if surgery \(i\) is cancelled</td>
+                                <td>\(i \in {1,...,n}\)</td>
+                            </tr>
+                            <tr>
+                                <td>\(o_{js}\)</td>
+                                <td>Continuous variable for the number of overtime minutes on day \(j\) under scenario \(s\)</td>
+                                <td>
+                                    \(j \in {1,...,m}\)<br>
+                                    \(s \in {1,...,S}\)
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>\(u_{js}\)</td>
+                                <td>Continuous variable for the number of idle minutes on day \(j\) under scenario \(s\)</td>
+                                <td>
+                                    \(j \in {1,...,m}\)<br>
+                                    \(s \in {1,...,S}\)
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>\(r_i\)</td>
+                                <td>Continuous variable for the number of days surgery \(i\) is rescheduled from the original day</td>
+                                <td>\(i \in {1,...,n}\)</td>
+                            </tr>
+                        </table>
+                    </p>
+                    <p>
+                        <strong>Objective</strong>
+                        <br>
+                        Minimize the expected cost of the OR's operation throughout the week:
+                    </p>
+                    <div class="equation">
+                        \(\text{min} \big( \sum_{s=1}^{S} p_s \sum_{j=1}^{m} ( c^{OT} \times o_{js} + c^{ID} \times u_{js} ) \big) + \big(c^{RE} \times \sum_{i=1}^{n} r_i \big) + \big(c^{CA} \times \sum_{i=1}^{n} y_i \big)\)
+                    </div>
+                    <br>
+                    <p>
+                        <ul>
+                            <li>OR Overtime cost: \(c^{OT} \times \sum_{s=1}^{S} p_s \sum_{j=1}^{m} o_{js}\)</li>
+                            <li>OR Idle cost: \(c^{ID} \times \sum_{s=1}^{S} p_s \sum_{j=1}^{m} u_{js}\)</li>
+                            <li>Surgery Reschedule cost: \(c^{RE} \times \sum_{i=1}^{n} r_i\)</li>
+                            <li>Surgery Cancellation cost: \(c^{CA} \times \sum_{i=1}^{n} y_i\)</li>
+                        </ul>
+                    </p>
+                    <p>
+                        <strong>Constraints</strong>
+                    </p>
+                    <p>
+                        Defining overtime minutes:
+                        <ul>
+                            <li>\(o_{js} \geq 0 \space; \forall j,s\)</li>
+                            <li>\(o_{js} \geq \big(\sum_{i=1}^{n}x_{ij} \times d_i \big) + E_{js} - M \space; \forall j,s\)</li>
+                        </ul>
+                    </p>
+                    <p>
+                        Defining idle minutes:
+                        <ul>
+                            <li>\(u_{js} \geq 0 \space; \forall j,s\)</li>
+                            <li>\(u_{js} \geq M - \big(\sum_{i=1}^{n}x_{ij} \times d_i \big) - E_{js} \space; \forall j,s\)</li>
+                        </ul>
+                    </p>
+                    <p>
+                        Defining rescheduled days:
+                        <ul>
+                            <li>\(r_i \geq \big(\sum_{j=1}^{m} x_{ij} \times j \big) - \big(\sum_{j=1}^{m} a_{ij} \times j \big) \times (1-y_i) \space; \forall i=1,...,n\)</li>
+                            <li>\(r_i \geq \big(\sum_{j=1}^{m} a_{ij} \times j \big) \times (1-y_i) - \big(\sum_{j=1}^{m} x_{ij} \times j \big) \space; \forall i=1,...,n\)</li>
+                        </ul>
+                    </p>
+                    <p>
+                        Defining cancellations:
+                        <ul>
+                            <li>\(y_i = x_{i,m+1} \space; \forall i\)</li>
+                            <li>\(r_i \leq m \times (1-y_i) \space; \forall i\)</li>
+                        </ul>
+                    </p>
+                    <p>
+                        Each surgery needs to be assigned a day or cancelled:
+                        <ul>
+                            <li>\(\sum_{j=1}^{m+1} x_{ij} \space = 1 \space; \forall i=1,...,n\)</li>
+                        </ul>
+                    </p>
+                    <p>
+                        <strong>Sample Generation</strong>
+                        <br>
+                        <p>
+                            We assume a Poisson arrival process for the emergency surgeries. 
+                            Therefore, for each day \(j\) of each sample \(s\), we generate the total number of emergency surgeries based on the provided Poisson rate for day \(j\).
+                            Then, for each emergency surgery, we generate the duration of the surgery using a Normal distribution based on the mean and standard deviation of the provided elective surgeries.
+                            <br>
+                            The pseudocode for this process is presented below:
+                            <div class="pseudocode">
+                                Calculate mean and standard deviation of elective surgeries <br>
+                                <span class="keyword">For</span> each sample iteration \(s\): <br>
+                                <span class="indent-1">
+                                    <span class="keyword">For</span> each day \(j\): 
+                                </span> <br>
+                                <span class="indent-2">
+                                    Generate number of emergency surgeries based on Poisson rate for day \(j\) <br>
+                                </span>
+                                <span class="indent-2">
+                                    <span class="keyword">If</span> there is at least 1 emergency surgery: <br>
+                                </span>
+                                <span class="indent-3">
+                                    Generate a duration for each emergency surgery based on Normal dist. <br>
+                                </span>
+                                <span class="indent-3">
+                                    \(E[j,s]\) equals the sum of the emergency surgery durations <br>
+                                </span>
+                                <span class="indent-2">
+                                    <span class="keyword">Else</span>: <br>
+                                </span>
+                                <span class="indent-3">
+                                    \(E[j,s]\) equals 0
+                                </span>
+                            </div>
+                        </p>
+                    </p>
+                </div>
+            </div>
+
+            <div class="methodology-section collapsed">
+                <h2 onclick="toggleSection(this)">3. Simulation</h2>
+                <div class="section-content">
+                    <p>
+                        The simulation portion is run in a very similar method as the sample generation portion.
+                        The key difference is adding the calculation of the overtime and idle costs after generating the emergency surgery durations for each day and iteration.
+                        <br>
+                        The pseudocode for the process is presented below:
+                        <div class="pseudocode">
+                            <span class="keyword">For</span> each simulation iteration \(s\): <br>
+                            <span class="indent-1">
+                                <span class="keyword">For</span> each day \(j\): 
+                            </span> <br>
+                            <span class="indent-2">
+                                Generate emergency surgery duration <br>
+                            </span>
+                            <span class="indent-2">
+                                Calculate overtime and idle costs when using the original schedule <br>
+                            </span>
+                            <span class="indent-2">
+                                Calculate overtime and idle costs when using the optimized schedule <br>
+                            </span>
+                        </div>
+                    </p>
+                    <p>
+                        For each simulation, the total costs for the original and optimized schedules is determined by summing the individual overtime and idle costs.
+                        For the optimized schedule, an additional flat cost associated with rescheduling and cancelling surgeries must also be applied.
+                        From here, we can determine if there is a cost improvement with the optimized schedule. 
+                        The iterations with cost improvements are tallied and represented as a percentage of the total iterations.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function toggleSection(header) {
+            const section = header.parentElement;
+            section.classList.toggle('collapsed');
+        }
+    </script>
+</body>
+</html>
