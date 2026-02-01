@@ -101,8 +101,7 @@ class MIP():
                           f'Assignment_{i}')
 
     def solve(self):
-        # solver = pl.PULP_CBC_CMD(msg=0)
-        solver = pl.HiGHS(msg=0)
+        solver = pl.PULP_CBC_CMD(msg=0)
         self.model.solve(solver)
 
         if self.model.status == pl.LpStatusOptimal:

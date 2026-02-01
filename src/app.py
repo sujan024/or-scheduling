@@ -260,11 +260,11 @@ def optimize_schedule():
 def open_browser():
     """Open browser after server starts"""
     time.sleep(1.5)
-    webbrowser.open('http://127.0.0.1:5000')
+    webbrowser.open('http://127.0.0.1:8000')
 
 if __name__ == '__main__':
     import os
-    port = int(os.environ.get("PORT", 5000))
+    port = int(os.environ.get("PORT", 8000))
 
     if not os.environ.get("RENDER"):
         print("Running locally...")
